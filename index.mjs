@@ -104,9 +104,17 @@ export const defaultOptions = {
 };
 
 function formatDjangoTag(text) {
-  // Remove all duplicate spaces that are not inside quotes
-  return text.replace(
-    / +(?=([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)/g,
-    " "
-  );
+  const varMatch = text.match(/^\{\{(\w+)\}\}$/);
+  if (varMatch) {
+    return '{{ ' + varMatch[1] + ' }}';
+  }
+  // Remove duplicate spaces that are not leading and inside quotes
+  const tagMatch = text.match(/^(\{% *)(.*)/);
+  if (tagMatch) {
+    return tagMatch[1] + tagMatch[2].replace(
+      / {2,}(?=([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)/g,
+      " "
+    );
+  }
+  return text;
 }
