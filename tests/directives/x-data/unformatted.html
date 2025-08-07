@@ -1,0 +1,8 @@
+<div x-data="{ count: 0, message: 'Hello', items: [ 'one', 'two', 'three'  ], user: { name: 'John', age: 30 }, isOpen: false, toggle() { this.isOpen = !this.isOpen }, greet() {return `Hello, ${this.user.name}!`} }">
+  <button x-on:click="count++">Increment</button>
+  <span x-text="count"></span>
+  <input x-model="message">
+  <div x-show="isOpen">This is conditionally shown</div>
+  <button @click="toggle()">Toggle</button>
+  <div x-text="greet()"></div>
+</div>

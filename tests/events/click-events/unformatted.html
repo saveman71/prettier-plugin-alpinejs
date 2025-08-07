@@ -1,0 +1,12 @@
+<div x-data="{ count: 0, doSomething: function() { console.log('Did something'); return true; } }">
+  <button @click="count++">Simple Increment</button>
+  <button @click="count = count + 1; doSomething();">Multiple Actions</button>
+  <button @click="if (count < 10) { count++; } else { count = 0; }">Complex Logic</button>
+  <button @click="() => {
+    count++;
+    console.log('Count incremented!');
+    doSomething();
+  }">Arrow Function</button>
+  <div @click.outside="count = 0" @click="doSomething()">Click outside to reset</div>
+  <span x-text="count"></span>
+</div>

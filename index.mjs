@@ -1,5 +1,5 @@
-import htmlParserPlugin from "prettier/plugins/html";
-import { formatAlpineAttribute, isAlpineAttribute } from "./alpine.mjs";
+import htmlParserPlugin from 'prettier/plugins/html';
+import { formatAlpineAttribute, isAlpineAttribute } from './alpine.mjs';
 
 const htmlParser = htmlParserPlugin.parsers.html;
 const htmlPrinter = htmlParserPlugin.printers.html;
@@ -14,12 +14,17 @@ export const parsers = {
       let currentNesting = 0;
 
       for (let i = 0; i < text.length; i++) {
-        if (text[i] === "\n") {
+        if (text[i] === '\n') {
           nesting.push(currentNesting);
-        } else if (text[i] === "<" && text[i + 1] !== "/" && text[i + 1] !== "!" && text[i + 1] !== "?") {
+        } else if (
+          text[i] === '<' &&
+          text[i + 1] !== '/' &&
+          text[i + 1] !== '!' &&
+          text[i + 1] !== '?'
+        ) {
           currentNesting++;
           nesting[nesting.length || 0] = currentNesting;
-        } else if (text[i] === "<" && text[i + 1] === "/") {
+        } else if (text[i] === '<' && text[i + 1] === '/') {
           currentNesting--;
         }
       }
@@ -42,12 +47,17 @@ export const printers = {
       ast = htmlPrinter.preprocess(ast, options);
 
       // Find Alpine directives and format them
-      const traverse = async (node) => {
-        if (node.type === "element") {
+      const traverse = async node => {
+        if (node.type === 'element') {
           if (node.attrs) {
             for (const attr of node.attrs) {
               if (attr.name && attr.value && isAlpineAttribute(attr.name)) {
-                attr.value = await formatAlpineAttribute(attr.name, attr.value, options, options.nesting[attr.valueSpan.start.line]);
+                attr.value = await formatAlpineAttribute(
+                  attr.name,
+                  attr.value,
+                  options,
+                  options.nesting[attr.valueSpan.start.line]
+                );
               }
             }
           }
@@ -68,6 +78,4 @@ export const printers = {
   },
 };
 
-export const defaultOptions = {
-  singleQuote: true,
-};
+export const defaultOptions = {};

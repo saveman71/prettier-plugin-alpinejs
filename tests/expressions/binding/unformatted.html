@@ -1,0 +1,20 @@
+<div x-data="{ name: 'John', selected: 'option2', agree: false, price: 99.99, colors: ['red', 'blue'], status: 'active' }">
+  <h1 x-text="'Hello, ' + name + '!'"></h1>
+  <div x-bind:class="{ 'bg-red-500': status === 'error', 'bg-green-500': status === 'active',    'bg-yellow-500': status==='warning' }"></div>
+  <div :class="[status === 'active' ? 'border-green' : 'border-gray', 'p-4', 'rounded']"></div>
+  <select x-model="selected">
+    <option value="option1">Option 1</option>
+    <option value="option2">Option 2</option>
+    <option value="option3">Option 3</option>
+  </select>
+  <input type="checkbox" x-model="agree"> I agree to terms
+  <div x-show="agree">Thank you for agreeing!</div>
+  <input type="range" x-model.number="price" min="0" max="1000">
+  <span x-text="'$' + price.toFixed(2)"></span>
+  <ul>
+    <template x-for="color in colors">
+      <li x-text="color"></li>
+    </template>
+  </ul>
+  <button :disabled="!agree" x-bind:class="{'opacity-50': !agree, 'bg-blue-500': agree,   'hover:bg-blue-700':agree}">Submit</button>
+</div>
