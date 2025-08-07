@@ -1,7 +1,7 @@
 {
-  "name": "prettier-plugin-django-alpine",
+  "name": "prettier-plugin-alpinejs",
   "version": "1.3.0",
-  "description": "Format Django tags and Alpine.js in HTML files",
+  "description": "Format Alpine.js in HTML files",
   "main": "index.mjs",
   "scripts": {
     "test": "prettier --plugin ./index.mjs --write ./test.html"
@@ -9,7 +9,6 @@
   "keywords": [
     "prettier",
     "plugin",
-    "django",
     "alpine"
   ],
   "author": "sezze",

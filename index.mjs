@@ -1,6 +1,5 @@
 import htmlParserPlugin from "prettier/plugins/html";
 import { formatAlpineAttribute, isAlpineAttribute } from "./alpine.mjs";
-import { replaceDjangoTags } from "./django.mjs";
 
 const htmlParser = htmlParserPlugin.parsers.html;
 const htmlPrinter = htmlParserPlugin.printers.html;
@@ -10,14 +9,26 @@ export const parsers = {
   html: {
     ...htmlParser,
     preprocess(text, options) {
-      // Remove django template tags with placeholders
-      const { djangoTags, newString, nesting } = replaceDjangoTags(text);
+      // Calculate nesting level for each line
+      const nesting = [];
+      let currentNesting = 0;
 
-      // Store them for later
-      options.djangoTags = djangoTags;
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] === "\n") {
+          nesting.push(currentNesting);
+        } else if (text[i] === "<" && text[i + 1] !== "/" && text[i + 1] !== "!" && text[i + 1] !== "?") {
+          currentNesting++;
+          nesting[nesting.length || 0] = currentNesting;
+        } else if (text[i] === "<" && text[i + 1] === "/") {
+          currentNesting--;
+        }
+      }
+      nesting.push(currentNesting);
+
+      // Store nesting for later
       options.nesting = nesting;
 
-      return newString;
+      return text;
     },
   },
 };
@@ -36,12 +47,7 @@ export const printers = {
           if (node.attrs) {
             for (const attr of node.attrs) {
               if (attr.name && attr.value && isAlpineAttribute(attr.name)) {
-                attr.value = await formatAlpineAttribute(
-                  attr.name,
-                  attr.value,
-                  options,
-                  options.nesting[attr.valueSpan.start.line]
-                );
+                attr.value = await formatAlpineAttribute(attr.name, attr.value, options, options.nesting[attr.valueSpan.start.line]);
               }
             }
           }
@@ -57,43 +63,6 @@ export const printers = {
     },
     print(path, options, print) {
       let doc = htmlPrinter.print(path, options, print);
-
-      // format all django tags
-      const djangoTags =
-        options.djangoTags && Object.values(options.djangoTags);
-      djangoTags?.forEach((tag) => {
-        tag.tag = formatDjangoTag(tag.tag);
-      });
-
-      const memory = new Set();
-
-      const traverse = (node) => {
-        if (typeof node === "string") {
-          if (node.indexOf("__DJANGO_TAG_") === -1) return node;
-          // Reinsert django tags
-          djangoTags?.forEach((tag) => {
-            node = node.replace(tag.key, formatDjangoTag(tag.tag));
-          });
-          return node;
-        }
-        if (memory.has(node)) return node;
-        memory.add(node);
-
-        if (node.contents) {
-          node.contents = traverse(node.contents);
-        } else if (node.parts) {
-          node.parts = traverse(node.parts);
-        } else if (Array.isArray(node)) {
-          for (let i = 0; i < node.length; i++) {
-            node[i] = traverse(node[i]);
-          }
-        }
-
-        return node;
-      };
-
-      doc = traverse(doc);
-
       return doc;
     },
   },
@@ -102,19 +71,3 @@ export const printers = {
 export const defaultOptions = {
   singleQuote: true,
 };
-
-function formatDjangoTag(text) {
-  const varMatch = text.match(/^\{\{(\w+)\}\}$/);
-  if (varMatch) {
-    return '{{ ' + varMatch[1] + ' }}';
-  }
-  // Remove duplicate spaces that are not leading and inside quotes
-  const tagMatch = text.match(/^(\{% *)(.*)/);
-  if (tagMatch) {
-    return tagMatch[1] + tagMatch[2].replace(
-      / {2,}(?=([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)/g,
-      " "
-    );
-  }
-  return text;
-}
